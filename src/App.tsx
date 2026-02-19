@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getVersion } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { check } from "@tauri-apps/plugin-updater";
 import { QRCodeSVG } from "qrcode.react";
@@ -47,6 +48,8 @@ interface OpenAppItem {
   icon_data_url?: string | null;
 }
 
+type UpdaterState = "idle" | "checking" | "up-to-date" | "downloading" | "error";
+
 const compactPath = (fullPath: string) => {
   const normalized = fullPath.replace(/\//g, "\\");
   const parts = normalized.split("\\").filter(Boolean);
@@ -74,6 +77,10 @@ function App() {
   const [appPathDraft, setAppPathDraft] = useState("");
   const [appsBusy, setAppsBusy] = useState(false);
   const [appsOpen, setAppsOpen] = useState(false);
+  const [updaterOpen, setUpdaterOpen] = useState(false);
+  const [updaterState, setUpdaterState] = useState<UpdaterState>("idle");
+  const [updaterMessage, setUpdaterMessage] = useState("");
+  const [currentVersion, setCurrentVersion] = useState("");
   const appsAtLimit = openApps.length >= OPEN_APPS_MAX;
 
   const refreshPairing = async () => {
@@ -246,15 +253,25 @@ function App() {
   };
 
   const checkForUpdates = async () => {
+    setUpdaterOpen(true);
+    setUpdaterState("checking");
+    setUpdaterMessage("Searching for updates...");
     try {
       const update = await check();
       if (update) {
+        setUpdaterState("downloading");
+        setUpdaterMessage("Update found. Downloading and installing...");
         await update.downloadAndInstall();
+        setUpdaterMessage("Update installed. Restarting app...");
         return;
       }
-      window.open(UPDATES_URL, "_blank", "noopener,noreferrer");
+      setUpdaterState("up-to-date");
+      setUpdaterMessage(
+        `You are using the latest version${currentVersion ? ` (v${currentVersion})` : ""}.`
+      );
     } catch {
-      window.open(UPDATES_URL, "_blank", "noopener,noreferrer");
+      setUpdaterState("error");
+      setUpdaterMessage("Could not check updates right now.");
     }
   };
 
@@ -262,6 +279,9 @@ function App() {
     void refreshPairing();
     void loadSettings();
     void loadOpenApps();
+    void getVersion()
+      .then((v) => setCurrentVersion(v))
+      .catch(() => setCurrentVersion(""));
 
     let unlistenConn: (() => void) | null = null;
     let unlistenOpenQr: (() => void) | null = null;
@@ -468,6 +488,44 @@ function App() {
                 )}
               </div>
               <button className="secondary full" onClick={() => setAppsOpen(false)}>Done</button>
+            </div>
+          </div>,
+          document.body
+        )
+      )}
+
+      {updaterOpen && (
+        createPortal(
+          <div
+            className="modal-overlay"
+            onClick={() => {
+              if (updaterState !== "checking" && updaterState !== "downloading") {
+                setUpdaterOpen(false);
+              }
+            }}
+          >
+            <div className="qr-modal updater-modal" onClick={(e) => e.stopPropagation()}>
+              <h3>Update</h3>
+              {(updaterState === "checking" || updaterState === "downloading") ? (
+                <div className="updater-progress" aria-live="polite">
+                  <span className="updater-spinner" aria-hidden="true"></span>
+                  <p className="qr-help">{updaterMessage}</p>
+                </div>
+              ) : (
+                <p className="qr-help" aria-live="polite">{updaterMessage}</p>
+              )}
+              {updaterState === "error" ? (
+                <button className="secondary full" onClick={() => window.open(UPDATES_URL, "_blank", "noopener,noreferrer")}>
+                  Open Downloads Page
+                </button>
+              ) : null}
+              <button
+                className="secondary full"
+                onClick={() => setUpdaterOpen(false)}
+                disabled={updaterState === "checking" || updaterState === "downloading"}
+              >
+                Close
+              </button>
             </div>
           </div>,
           document.body

@@ -391,3 +391,29 @@ button:hover {
 .app-remove-btn {
   min-width: 82px;
 }
+
+.updater-modal {
+  min-width: 320px;
+  max-width: 360px;
+}
+
+.updater-progress {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.updater-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid var(--line-soft);
+  border-top-color: var(--blue-strong);
+  animation: updater-spin 0.9s linear infinite;
+}
+
+@keyframes updater-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
