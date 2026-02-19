@@ -1846,10 +1846,6 @@ async fn run_ws_server(state: AppState, app: AppHandle) {
 pub fn run() {
     let (input_tx, input_rx) = mpsc::unbounded_channel::<InputCommand>();
 
-    if !get_launch_on_startup_impl() {
-        let _ = set_launch_on_startup_impl(true);
-    }
-
     let state = AppState {
         token: Arc::new(Mutex::new(generate_quick_code())),
         connections: Arc::new(AtomicUsize::new(0)),
