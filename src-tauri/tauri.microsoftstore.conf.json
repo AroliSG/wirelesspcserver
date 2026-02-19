@@ -1,0 +1,11 @@
+{
+  "bundle": {
+    "publisher": "AroliSG",
+    "createUpdaterArtifacts": false,
+    "windows": {
+      "webviewInstallMode": {
+        "type": "offlineInstaller"
+      }
+    }
+  }
+}

@@ -10,6 +10,14 @@ jobs:
   build-and-release:
     permissions:
       contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            uploadUpdaterJson: true
+          - target: i686-pc-windows-msvc
+            uploadUpdaterJson: false
     runs-on: windows-latest
 
     steps:
@@ -25,6 +33,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
+
       - name: Build and publish Tauri release
         uses: tauri-apps/tauri-action@v0
         env:
@@ -32,11 +43,12 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
+          args: --target ${{ matrix.target }}
           tagName: ${{ github.ref_name }}
-          releaseName: Wireless PC Server ${{ github.ref_name }}
+          releaseName: Wireless PC Server ${{ github.ref_name }} (${{ matrix.target }})
           releaseBody: |
             Automated desktop release for Wireless PC Server.
           releaseDraft: false
           prerelease: false
-          uploadUpdaterJson: true
+          uploadUpdaterJson: ${{ matrix.uploadUpdaterJson }}
           updaterJsonPreferNsis: true
