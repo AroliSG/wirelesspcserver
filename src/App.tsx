@@ -12,7 +12,6 @@ import SecuritySection from "./components/sections/SecuritySection";
 import SettingsSection from "./components/sections/SettingsSection";
 import "./App.css";
 
-const UPDATES_URL = "https://wirelesspc.arolisg.dev";
 const OPEN_APPS_MAX = 6;
 
 interface PairingInfo {
@@ -506,6 +505,9 @@ function App() {
           >
             <div className="qr-modal updater-modal" onClick={(e) => e.stopPropagation()}>
               <h3>Update</h3>
+              {currentVersion ? (
+                <p className="qr-help mono">Current version: v{currentVersion}</p>
+              ) : null}
               {(updaterState === "checking" || updaterState === "downloading") ? (
                 <div className="updater-progress" aria-live="polite">
                   <span className="updater-spinner" aria-hidden="true"></span>
@@ -514,11 +516,6 @@ function App() {
               ) : (
                 <p className="qr-help" aria-live="polite">{updaterMessage}</p>
               )}
-              {updaterState === "error" ? (
-                <button className="secondary full" onClick={() => window.open(UPDATES_URL, "_blank", "noopener,noreferrer")}>
-                  Open Downloads Page
-                </button>
-              ) : null}
               <button
                 className="secondary full"
                 onClick={() => setUpdaterOpen(false)}
