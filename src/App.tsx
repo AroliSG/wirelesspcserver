@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { check } from "@tauri-apps/plugin-updater";
 import { QRCodeSVG } from "qrcode.react";
 import { createPortal } from "react-dom";
 import Navbar from "./components/Navbar";
@@ -244,6 +245,19 @@ function App() {
     }
   };
 
+  const checkForUpdates = async () => {
+    try {
+      const update = await check();
+      if (update) {
+        await update.downloadAndInstall();
+        return;
+      }
+      window.open(UPDATES_URL, "_blank", "noopener,noreferrer");
+    } catch {
+      window.open(UPDATES_URL, "_blank", "noopener,noreferrer");
+    }
+  };
+
   useEffect(() => {
     void refreshPairing();
     void loadSettings();
@@ -277,7 +291,7 @@ function App() {
       });
 
       unlistenCheckUpdates = await listen("check-updates", () => {
-        window.open(UPDATES_URL, "_blank", "noopener,noreferrer");
+        void checkForUpdates();
       });
     };
 

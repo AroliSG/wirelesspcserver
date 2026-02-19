@@ -38,6 +38,16 @@
                                 "icons/icon.icns",
                                 "icons/icon.ico"
                             ],
-                   "createUpdaterArtifacts":  false
-               }
+                   "createUpdaterArtifacts":  true
+               },
+    "plugins":  {
+                    "updater":  {
+                                    "active":  true,
+                                    "dialog":  true,
+                                    "endpoints":  [
+                                                      "https://github.com/AroliSG/wirelesspcserver/releases/latest/download/latest.json"
+                                                  ],
+                                    "pubkey":  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ2REY4OTlDODU0OTQ5NTUKUldSVlNVbUZuSW5mUnY0WWdOY3ZES0FPM3J1VzYzZE1nSXpUNE1nWnZTaGVhak1yd1l3ZEI5T0MK"
+                                }
+                }
 }
